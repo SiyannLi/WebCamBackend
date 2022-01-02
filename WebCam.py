@@ -5,13 +5,13 @@ import os, sys
 import numpy as np
 from threading import Thread
 
-global capture, rec_frame, grey, switch, neg, face, rec, out
-capture = 0
-grey = 0
-neg = 0
-face = 0
-switch = 1
-rec = 0
+global capture, rec_frame, grey, switch, neg, face, rec, out  # out 视频流
+capture = 0  # 截屏
+grey = 0  # 灰度图像
+neg = 0  # 反转
+face = 0  # 人脸检测
+switch = 1  # 开关
+rec = 0  # 录屏
 
 # make shots directory to save pics
 try:
@@ -30,11 +30,18 @@ camera = cv2.VideoCapture(1)
 
 
 def record(out):
-    global rec_frame
+    global rec_frame, switch, camera
+    current_switch = switch
+    if (switch == 0):
+        camera = cv2.VideoCapture(1)
+        switch = 1
     while (rec):
         time.sleep(0.05)
         out.write(rec_frame)
-
+    if (current_switch ==0):
+        switch = 0
+        camera.release()
+        cv2.destroyAllWindows()
 
 def detect_face(frame):
     global net
@@ -74,8 +81,9 @@ def gen_frames():  # generate frame by frame from camera
                 frame = cv2.bitwise_not(frame)
             if (capture):
                 capture = 0
-                now = datetime.datetime.now()
-                p = os.path.sep.join(['shots', "shot_{}.png".format(str(now).replace(":", ''))])
+                # now = datetime.datetime.now()
+                now = time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())
+                p = os.path.sep.join(['shots', "shot_{}.png".format(str(now))])
                 cv2.imwrite(p, frame)
 
             if (rec):
@@ -138,9 +146,10 @@ def tasks():
             global rec, out
             rec = not rec
             if (rec):
-                now = datetime.datetime.now()
+                # now = datetime.datetime.now()
+                now = time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())
                 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-                out = cv2.VideoWriter('vid_{}.avi'.format(str(now).replace(":", '')), fourcc, 20.0, (640, 480))
+                out = cv2.VideoWriter('vid_{}.avi'.format(str(now)), fourcc, 20.0, (640, 480))
                 # Start new thread for recording the video
                 thread = Thread(target=record, args=[out, ])
                 thread.start()
@@ -152,10 +161,15 @@ def tasks():
         return render_template('index.html')
     return render_template('index.html')
 
+
 @app.route('/download')
 # def download(file_path):
 def download():
-    file_path = 'vid_2021-12-30 114851.490598.avi'
+    start_time = request.form.get("start_time")
+    last_time = request.form.get("last_time")
+    #将多个视频合并成一个
+    file_path = 'vid_2022_01_02_18_28_28.avi'
+
     def send_file():
         if not os.path.exists(file_path):
             raise "File not found"
@@ -165,9 +179,11 @@ def download():
                 if not chunk:
                     break
                 yield chunk
+
     response = Response(send_file(), content_type="application/octet-stream")
     response.headers["Content-disposition"] = 'attachment; filename = %s' % file_path
     return response
+
 
 if __name__ == '__main__':
     app.run()
