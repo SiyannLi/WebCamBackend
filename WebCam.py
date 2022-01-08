@@ -1,7 +1,7 @@
 from flask import Flask, render_template, Response, request
 import cv2
-import datetime, time
-import os, sys
+import time
+import os
 import numpy as np
 from threading import Thread
 
@@ -19,6 +19,12 @@ try:
 except OSError as error:
     pass
 
+# make videos directory to save pics
+try:
+    os.mkdir('./videos')
+except OSError as error:
+    pass
+
 # Load pretrained face detection model
 net = cv2.dnn.readNetFromCaffe('./saved_model/deploy.prototxt.txt',
                                './saved_model/res10_300x300_ssd_iter_140000.caffemodel')
@@ -29,19 +35,29 @@ app = Flask(__name__, template_folder='./templates')
 camera = cv2.VideoCapture(1)
 
 
-def record(out):
-    global rec_frame, switch, camera
-    current_switch = switch
+def record():
+    global rec_frame, switch, camera, out
     if (switch == 0):
         camera = cv2.VideoCapture(1)
         switch = 1
     while (rec):
         time.sleep(0.05)
         out.write(rec_frame)
-    if (current_switch ==0):
-        switch = 0
-        camera.release()
-        cv2.destroyAllWindows()
+
+
+def record_switch():
+    global rec, out
+    rec = not rec
+    if (rec):
+        now = time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        p = os.path.sep.join(['videos', "{}.avi".format(str(now))])
+        out = cv2.VideoWriter(p, fourcc, 20.0, (640, 480))
+        # Start new thread for recording the video
+        thread = Thread(target=record, args=[])
+        thread.start()
+    elif (rec == False):
+        out.release()
 
 def detect_face(frame):
     global net
@@ -143,33 +159,19 @@ def tasks():
                 camera = cv2.VideoCapture(1)
                 switch = 1
         elif request.form.get('rec') == 'Start/Stop Recording':
-            global rec, out
-            rec = not rec
-            if (rec):
-                # now = datetime.datetime.now()
-                now = time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())
-                fourcc = cv2.VideoWriter_fourcc(*'XVID')
-                out = cv2.VideoWriter('vid_{}.avi'.format(str(now)), fourcc, 20.0, (640, 480))
-                # Start new thread for recording the video
-                thread = Thread(target=record, args=[out, ])
-                thread.start()
-            elif (rec == False):
-                out.release()
-
+            record_switch()
 
     elif request.method == 'GET':
         return render_template('index.html')
     return render_template('index.html')
 
 
-@app.route('/download')
-# def download(file_path):
-def download():
-    start_time = request.form.get("start_time")
-    last_time = request.form.get("last_time")
-    #将多个视频合并成一个
-    file_path = 'vid_2022_01_02_18_28_28.avi'
+def download(file_path):
+    # download one certain video to front end
 
+    # start_time = request.form.get("start_time")
+    # last_time = request.form.get("last_time")
+    # file_path = 'video/2022_01_02_18_28_28.avi'
     def send_file():
         if not os.path.exists(file_path):
             raise "File not found"
@@ -179,10 +181,10 @@ def download():
                 if not chunk:
                     break
                 yield chunk
-
-    response = Response(send_file(), content_type="application/octet-stream")
-    response.headers["Content-disposition"] = 'attachment; filename = %s' % file_path
-    return response
+        response = Response(
+            send_file(), content_type="application/octet-stream")
+        response.headers["Content-disposition"] = 'attachment; filename = %s' % file_path
+        return response
 
 
 if __name__ == '__main__':
