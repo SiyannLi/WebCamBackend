@@ -5,7 +5,7 @@ import os
 import numpy as np
 from threading import Thread
 
-global capture, rec_frame, grey, switch, neg, face, rec, out  # out 视频流
+global capture, rec_frame, grey, switch, neg, face, rec, out,frame  # out 视频流
 capture = 0  # 截屏
 grey = 0  # 灰度图像
 neg = 0  # 反转
@@ -35,8 +35,8 @@ app = Flask(__name__, template_folder='./templates')
 camera = cv2.VideoCapture(1)
 
 
-def record():
-    global rec_frame, switch, camera, out
+def record(out):
+    global rec_frame, switch, camera
     if (switch == 0):
         camera = cv2.VideoCapture(1)
         switch = 1
@@ -54,7 +54,7 @@ def record_switch():
         p = os.path.sep.join(['videos', "{}.avi".format(str(now))])
         out = cv2.VideoWriter(p, fourcc, 20.0, (640, 480))
         # Start new thread for recording the video
-        thread = Thread(target=record, args=[])
+        thread = Thread(target=record, args=[out,])
         thread.start()
     elif (rec == False):
         out.release()
@@ -85,7 +85,7 @@ def detect_face(frame):
 
 
 def gen_frames():  # generate frame by frame from camera
-    global out, capture, rec_frame
+    global out, capture, rec_frame,frame
     while True:
         success, frame = camera.read()
         if success:
@@ -165,7 +165,7 @@ def tasks():
         return render_template('index.html')
     return render_template('index.html')
 
-
+@app.route('/download')
 def download(file_path):
     # download one certain video to front end
 
@@ -186,6 +186,11 @@ def download(file_path):
         response.headers["Content-disposition"] = 'attachment; filename = %s' % file_path
         return response
 
+@app.route('/video_list')
+def video_list():
+    video_path = 'videos'
+    files = os.listdir(video_path)
+    return Response(files)
 
 if __name__ == '__main__':
     app.run()

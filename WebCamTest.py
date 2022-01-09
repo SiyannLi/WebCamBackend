@@ -18,8 +18,8 @@ class TestCase(unittest.TestCase):
         #print(files)
 
     def test_record(self):
-        WebCam.new_record()
+        WebCam.record_switch()
         time.sleep(5)
-        WebCam.new_record()
+        WebCam.record_switch()
 if __name__ == '__main__':
     unittest.main()
