@@ -1,25 +1,26 @@
 import unittest
-
-import WebCam
+from Camera import Camera
 import os
-import time
+import app
+
+
 class TestCase(unittest.TestCase):
+
     def setUp(self):
-        WebCam.app.config.update(TESTING = True)
-        
+        app.app.config.update(TESTING=True)
 
     def test_print_all_files(self):
         print("Hello")
         video_path = 'videos'
         files = os.listdir(video_path)
         for f in files:
-            
             print(f)
-        #print(files)
+        # print(files)
 
     def test_record(self):
-        WebCam.record_switch()
-        time.sleep(5)
-        WebCam.record_switch()
+        camera = Camera()
+        camera.record()
+
+
 if __name__ == '__main__':
     unittest.main()
