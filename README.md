@@ -1,18 +1,21 @@
+#WebCam with python and opencv
+
+##install dependencies
 ```commandline
 pip install flask
 pip install flask-apscheduler
 pip install opencv-python
 ```
 
-run:
+##how to run:
 ```commandline
 flask run
 ```
+if camera not works, change self.camera_number = 1 to 0 in class Camera
 
 port: http://127.0.0.1:5000/
 
-api:
-
+##api:
 ```
 / :live stream
 /capture :screen shot
