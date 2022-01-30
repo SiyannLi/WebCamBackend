@@ -13,19 +13,20 @@ camera = Camera()
 frame_stream = None
 # make shots directory to save pics
 try:
-    os.mkdir('./shots')
+    os.mkdir('../shots')
 except OSError as error:
     pass
 
 # make videos directory to save pics
 try:
-    os.mkdir('./videos')
+    os.mkdir('../videos')
 except OSError as error:
     pass
 
 
-@app.route('/')
+@app.route('/webcam')
 def video_feed():
+    frame_stream = camera.gen_frames()
     return Response(frame_stream, mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
@@ -38,7 +39,7 @@ def capture():
 
 @app.route('/video_list')
 def video_list():
-    video_path = 'videos'
+    video_path = '../videos'
     files = os.listdir(video_path)
     return Response(files)
 

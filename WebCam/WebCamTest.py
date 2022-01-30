@@ -11,7 +11,7 @@ class TestCase(unittest.TestCase):
 
     def test_print_all_files(self):
         print("Hello")
-        video_path = 'videos'
+        video_path = '../videos'
         files = os.listdir(video_path)
         for f in files:
             print(f)
