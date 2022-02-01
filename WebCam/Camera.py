@@ -8,7 +8,7 @@ class Camera:
 
     def __init__(self):
         self.camera_opened = None
-        self.camera_number = 1
+        self.camera_number = 0
         # self.rtmp_str = 'rtsp://admin:12345678@192.168.1.226:554//h265Preview_01_main'
         # self.camera = cv2.VideoCapture(self.rtmp_str)
         self.set_up_camera()
