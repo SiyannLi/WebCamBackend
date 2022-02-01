@@ -1,10 +1,17 @@
 class Config(object):
     JOBS = [
         {
-            'id': 'record_for_ten_mins',
+            'id': 'record',
             'func': 'app:record',
-            'trigger': 'interval',
-            'seconds': 601
+            'trigger': 'cron',
+            'hour': '0'
         }
+        # ,
+        # {
+        #     'id': 'test',
+        #     'func': 'app:cron',
+        #     'trigger': 'cron',
+        #     'second': '*/2'
+        # }
     ]
     SCHEDULER_API_ENABLED = True

@@ -24,7 +24,7 @@ except OSError as error:
     pass
 
 
-@app.route('/webcam')
+@app.route('/')
 def video_feed():
     frame_stream = camera.gen_frames()
     return Response(frame_stream, mimetype='multipart/x-mixed-replace; boundary=frame')
@@ -45,8 +45,12 @@ def video_list():
 
 
 @app.route('/download')
-def download(file_path):
+def download():
+    start_time = request.args.get('start_time')
+    end_time = request.args.get('end_time')
     # download one certain video to front end
+    camera.cut_video(start_time, end_time)
+
     def send_file(file_path):
         if not os.path.exists(file_path):
             raise "File not found"
@@ -57,15 +61,21 @@ def download(file_path):
                     break
                 yield chunk
 
+    file_path = '../videos/download.avi'
     response = Response(
         send_file(file_path), content_type="application/octet-stream")
     response.headers["Content-disposition"] = 'attachment; filename = %s' % file_path
     return response
 
 
+@app.route("/record")
 def record():
     thread = Thread(camera.record())
     thread.start()
+
+
+def cron():
+    print("testtesttest")
 
 
 if __name__ == '__main__':
