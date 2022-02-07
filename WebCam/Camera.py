@@ -8,7 +8,7 @@ class Camera:
 
     def __init__(self):
         self.camera_opened = None
-        self.camera_number = 0
+        self.camera_number = 1
         # self.rtmp_str = 'rtsp://admin:12345678@192.168.1.226:554//h265Preview_01_main'
         # self.camera = cv2.VideoCapture(self.rtmp_str)
         self.set_up_camera()
@@ -21,7 +21,7 @@ class Camera:
     def set_up_camera(self):
         self.camera = cv2.VideoCapture(self.camera_number)
 
-    def gen_frames(self):  # generate frame by frame from camera
+    def gen_frames640(self):  # generate frame by frame from camera
         self.set_up_camera()
         while True:
             self.camera_opened, self.frame = self.camera.read()
@@ -34,10 +34,24 @@ class Camera:
                            b'Content-Type: image/jpeg\r\n\r\n' + stream_frame + b'\r\n')
                 except Exception as e:
                     pass
-
             else:
                 pass
 
+    def gen_frames1920(self):  # generate frame by frame from camera
+        self.set_up_camera()
+        while True:
+            self.camera_opened, self.frame = self.camera.read()
+            if self.camera_opened:
+                try:
+                    self.frame = cv2.resize(self.frame, (1920, 1080))
+                    ret, buffer = cv2.imencode('.jpg', cv2.flip(self.frame, 1))
+                    stream_frame = buffer.tobytes()
+                    yield (b'--frame\r\n'
+                           b'Content-Type: image/jpeg\r\n\r\n' + stream_frame + b'\r\n')
+                except Exception as e:
+                    pass
+            else:
+                pass
     def capture(self):
         if not self.camera_opened:
             self.set_up_camera()

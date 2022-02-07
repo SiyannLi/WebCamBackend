@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Response, request
+from flask import Flask, render_template, Response, request, abort
 import cv2
 import os
 from threading import Thread
@@ -8,7 +8,7 @@ from flask_apscheduler import APScheduler
 
 # initialize
 app = Flask(__name__, template_folder='./templates')
-
+global current_resolution
 camera = Camera()
 frame_stream = None
 # make shots directory to save pics
@@ -22,12 +22,30 @@ try:
     os.mkdir('../videos')
 except OSError as error:
     pass
-
-
+@app.route('/change_resolution', methods=['POST'])
+def change_resolution():
+    global current_resolution
+    current_resolution = request.json.get("resolution")
+    print('change resolution to: ')
+    print(current_resolution)
+    return Response('succeed')
 @app.route('/')
 def video_feed():
-    frame_stream = camera.gen_frames()
-    return Response(frame_stream, mimetype='multipart/x-mixed-replace; boundary=frame')
+    global current_resolution
+    if current_resolution != 640:
+        return Response('resolution incorrect')
+    else:
+        frame_stream = camera.gen_frames640()
+        return Response(frame_stream, mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/1920')
+def video_1920():
+    if current_resolution != 1920:
+        return Response('resolution incorrect')
+    else:
+        frame_stream = camera.gen_frames1920()
+        return Response(frame_stream, mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 @app.route('/capture')
@@ -79,7 +97,9 @@ def cron():
 
 
 if __name__ == '__main__':
-    frame_stream = camera.gen_frames()
+    global current_resolution
+    current_resolution = 640
+    frame_stream = camera.gen_frames640()
 
     app.config.from_object(Config())
     scheduler = APScheduler()
