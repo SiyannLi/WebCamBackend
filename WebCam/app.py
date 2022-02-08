@@ -1,14 +1,17 @@
-from flask import Flask, render_template, Response, request, abort
+from flask import Flask, render_template, Response, request, abort, make_response, jsonify
 import cv2
 import os
 from threading import Thread
 from Camera import Camera
 from Config import Config
 from flask_apscheduler import APScheduler
+from flask_cors import CORS
 
 # initialize
 app = Flask(__name__, template_folder='./templates')
-global current_resolution
+CORS(app, supports_credentials=True)
+
+global current_resolution, max_download_time
 camera = Camera()
 frame_stream = None
 # make shots directory to save pics
@@ -22,18 +25,47 @@ try:
     os.mkdir('../videos')
 except OSError as error:
     pass
+
+
 @app.route('/change_resolution', methods=['POST'])
 def change_resolution():
     global current_resolution
     current_resolution = request.json.get("resolution")
-    print('change resolution to: ')
-    print(current_resolution)
-    return Response('succeed')
-@app.route('/')
-def video_feed():
+    dic = {"status": "success", "code": 200, "current_resolution": current_resolution}
+    res = make_response(jsonify(dic))
+    return res
+
+
+@app.route('/get_resolution', methods=['POST'])
+def get_resolution():
+    global current_resolution
+    dic = {"status": "success", "code": 200, "current_resolution": current_resolution}
+    res = make_response(jsonify(dic))
+    return res
+
+
+@app.route('/change_max_download_time', methods=['POST'])
+def change_max_download_time():
+    global max_download_time
+    max_download_time = request.json.get("max_download_time")
+    dic = {"status": "success", "code": 200, "max_download_time": max_download_time}
+    res = make_response(jsonify(dic))
+    return res
+
+
+@app.route('/get_max_download_time', methods=['POST'])
+def get_max_download_time():
+    global max_download_time
+    dic = {"status": "success", "code": 200, "max_download_time": max_download_time}
+    res = make_response(jsonify(dic))
+    return res
+
+
+@app.route('/640')
+def video_640():
     global current_resolution
     if current_resolution != 640:
-        return Response('resolution incorrect')
+        return 'resolution incorrect, you can only view resolution of %d' % current_resolution, 404, []
     else:
         frame_stream = camera.gen_frames640()
         return Response(frame_stream, mimetype='multipart/x-mixed-replace; boundary=frame')
@@ -42,7 +74,7 @@ def video_feed():
 @app.route('/1920')
 def video_1920():
     if current_resolution != 1920:
-        return Response('resolution incorrect')
+        return 'resolution incorrect, you can only view resolution of %d' % current_resolution, 404, []
     else:
         frame_stream = camera.gen_frames1920()
         return Response(frame_stream, mimetype='multipart/x-mixed-replace; boundary=frame')
@@ -62,10 +94,11 @@ def video_list():
     return Response(files)
 
 
-@app.route('/download')
+@app.route('/download', methods=['POST', 'GET'])
 def download():
     start_time = request.args.get('start_time')
     end_time = request.args.get('end_time')
+
     # download one certain video to front end
     camera.cut_video(start_time, end_time)
 
@@ -82,7 +115,7 @@ def download():
     file_path = '../videos/download.avi'
     response = Response(
         send_file(file_path), content_type="application/octet-stream")
-    response.headers["Content-disposition"] = 'attachment; filename = %s' % file_path
+    response.headers["Content-disposition"] = 'attachment; filename = %s.avi' % start_time
     return response
 
 
@@ -92,12 +125,9 @@ def record():
     thread.start()
 
 
-def cron():
-    print("testtesttest")
-
-
 if __name__ == '__main__':
-    global current_resolution
+    global current_resolution, max_download_time
+    max_download_time = 1000
     current_resolution = 640
     frame_stream = camera.gen_frames640()
 

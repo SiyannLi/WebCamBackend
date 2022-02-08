@@ -52,6 +52,7 @@ class Camera:
                     pass
             else:
                 pass
+
     def capture(self):
         if not self.camera_opened:
             self.set_up_camera()
@@ -89,10 +90,10 @@ class Camera:
         input_file = os.path.sep.join(['../videos', "{}.avi".format(str(syes))])
         output_file = os.path.sep.join(['../videos', "{}.avi".format(str('download'))])
 
-        start = datetime.datetime.strptime(start_time, '%Y_%m_%d_%H_%M_%S')
-        end = datetime.datetime.strptime(end_time, '%Y_%m_%d_%H_%M_%S')
-        start_frame = (((start.hour * 60) + start.minute) * 60 + start.second) * 20
-        end_frame = (((end.hour * 60) + start.minute) * 60 + end.second) * 20
+        start = datetime.datetime.strptime(start_time, '%H_%M_%S')
+        end = datetime.datetime.strptime(end_time, '%H_%M_%S')
+        start_frame = (start.hour * 60 * 60 + start.minute * 60 + start.second) * 20
+        end_frame = (end.hour * 60 * 60 + end.minute * 60 + end.second) * 20
 
         reader = cv2.VideoCapture(input_file)
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
