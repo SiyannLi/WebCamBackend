@@ -13,7 +13,6 @@ from flask_cors import CORS
 app = Flask(__name__, template_folder='./templates')
 CORS(app, supports_credentials=True)
 
-global current_resolution, max_download_time
 camera = Camera()
 frame_stream = None
 # make shots directory to save pics
@@ -132,18 +131,20 @@ def record():
     thread.start()
 
 
-if __name__ == '__main__':
-    global current_resolution, max_download_time
+def create_app():
+    global current_resolution, max_download_time, frame_stream
     max_download_time = 1000
     current_resolution = 640
     frame_stream = camera.gen_frames640()
-
     app.config.from_object(Config())
     scheduler = APScheduler()
     scheduler.init_app(app)
     scheduler.start()
 
-    app.run(port=8510)
+
+create_app()
+if __name__ == '__main__':
+    app.run(host='0.0.0.0')
 
 camera.camera.release()
 cv2.destroyAllWindows()
