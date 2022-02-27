@@ -1,3 +1,5 @@
+import time
+
 from flask import Flask, render_template, Response, request, abort, make_response, jsonify
 import cv2
 import os
@@ -27,7 +29,7 @@ except OSError as error:
     pass
 
 
-@app.route('/change_resolution', methods=['POST'])
+@app.route('/change_resolution', methods=['POST', 'GET'])
 def change_resolution():
     global current_resolution
     current_resolution = request.json.get("resolution")
@@ -36,7 +38,7 @@ def change_resolution():
     return res
 
 
-@app.route('/get_resolution', methods=['POST'])
+@app.route('/get_resolution', methods=['POST', 'GET'])
 def get_resolution():
     global current_resolution
     dic = {"status": "success", "code": 200, "current_resolution": current_resolution}
@@ -44,16 +46,17 @@ def get_resolution():
     return res
 
 
-@app.route('/change_max_download_time', methods=['POST'])
+@app.route('/change_max_download_time', methods=['POST', 'GET'])
 def change_max_download_time():
     global max_download_time
     max_download_time = request.json.get("max_download_time")
+    print(max_download_time)
     dic = {"status": "success", "code": 200, "max_download_time": max_download_time}
     res = make_response(jsonify(dic))
     return res
 
 
-@app.route('/get_max_download_time', methods=['POST'])
+@app.route('/get_max_download_time', methods=['POST', 'GET'])
 def get_max_download_time():
     global max_download_time
     dic = {"status": "success", "code": 200, "max_download_time": max_download_time}
@@ -99,6 +102,9 @@ def download():
     start_time = request.args.get('start_time')
     end_time = request.args.get('end_time')
 
+    print("download")
+    print(start_time)
+    print(end_time)
     # download one certain video to front end
     camera.cut_video(start_time, end_time)
 
@@ -113,9 +119,10 @@ def download():
                 yield chunk
 
     file_path = '../videos/download.avi'
+    now = time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())
     response = Response(
         send_file(file_path), content_type="application/octet-stream")
-    response.headers["Content-disposition"] = 'attachment; filename = %s.avi' % start_time
+    response.headers["Content-disposition"] = 'attachment; filename = %s.avi' % now
     return response
 
 
@@ -136,7 +143,7 @@ if __name__ == '__main__':
     scheduler.init_app(app)
     scheduler.start()
 
-    app.run()
+    app.run(port=8510)
 
 camera.camera.release()
 cv2.destroyAllWindows()
