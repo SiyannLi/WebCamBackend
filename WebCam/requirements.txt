@@ -1,0 +1,10 @@
+opencv-python
+flask
+numpy
+werkzeug
+gunicorn
+gevent
+flask_apscheduler
+flask_cors
+flask-sqlalchemy
+pymysql

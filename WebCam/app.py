@@ -1,13 +1,15 @@
-import time
-
-from flask import Flask, render_template, Response, request, abort, make_response, jsonify
-import cv2
+import datetime
 import os
+import time
 from threading import Thread
-from Camera import Camera
-from Config import Config
+
+import cv2
+from flask import Flask, Response, request, make_response, jsonify
 from flask_apscheduler import APScheduler
 from flask_cors import CORS
+
+from Camera import Camera
+from Config import Config
 
 # initialize
 app = Flask(__name__, template_folder='./templates')
@@ -82,18 +84,18 @@ def video_1920():
         return Response(frame_stream, mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
-@app.route('/capture')
-def capture():
-    thread = Thread(target=camera.capture())
-    thread.start()
-    return Response('success')
+# @app.route('/capture')
+# def capture():
+#     thread = Thread(target=camera.capture())
+#     thread.start()
+#     return Response('success')
 
 
-@app.route('/video_list')
-def video_list():
-    video_path = '../videos'
-    files = os.listdir(video_path)
-    return Response(files)
+# @app.route('/video_list')
+# def video_list():
+#     video_path = '../videos'
+#     files = os.listdir(video_path)
+#     return Response(files)
 
 
 @app.route('/download', methods=['POST', 'GET'])
@@ -122,10 +124,20 @@ def download():
     response = Response(
         send_file(file_path), content_type="application/octet-stream")
     response.headers["Content-disposition"] = 'attachment; filename = %s.avi' % now
+    # os.remove(file_path)
     return response
 
 
-@app.route("/record")
+def delete_useless_video():
+    now = datetime.datetime.now()
+    befor_yes = now - datetime.timedelta(days=2)
+    syes = befor_yes.strftime('%Y_%m_%d')
+    video_name = os.path.sep.join(['../videos', "{}.avi".format(str(syes))])
+    try:
+        os.remove(video_name)
+    except FileNotFoundError as e:
+        pass
+
 def record():
     thread = Thread(camera.record())
     thread.start()

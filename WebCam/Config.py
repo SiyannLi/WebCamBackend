@@ -1,17 +1,16 @@
 class Config(object):
     JOBS = [
-        {
-            'id': 'record',
-            'func': 'app:record',
-            'trigger': 'cron',
-            'hour': '0'
-        }
-        # ,
         # {
-        #     'id': 'test',
-        #     'func': 'app:cron',
+        #     'id': 'record',
+        #     'func': 'app:record',
         #     'trigger': 'cron',
-        #     'second': '*/2'
-        # }
+        #     'hour': '0'
+        # },
+        {
+            'id': 'delete_useless_video',
+            'func': 'app:delete_useless_video',
+            'trigger': 'cron',
+            'hour': '1'
+        }
     ]
     SCHEDULER_API_ENABLED = True
