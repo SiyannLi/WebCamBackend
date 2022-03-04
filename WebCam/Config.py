@@ -1,11 +1,11 @@
 class Config(object):
     JOBS = [
-        # {
-        #     'id': 'record',
-        #     'func': 'app:record',
-        #     'trigger': 'cron',
-        #     'hour': '0'
-        # },
+        {
+            'id': 'record',
+            'func': 'app:record',
+            'trigger': 'cron',
+            'hour': '9'
+        },
         {
             'id': 'delete_useless_video',
             'func': 'app:delete_useless_video',

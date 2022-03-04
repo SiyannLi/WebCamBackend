@@ -9,7 +9,7 @@ class Camera:
     def __init__(self):
         self.camera_opened = None
         self.camera_number = 1
-        self.str = "rtmp://ns8.indexforce.com/home/mystream"
+        self.str = "rtsp://admin:12345678@10.12.180.110:554//h265Preview_01_main"
         # self.rtmp_str = 'rtsp://admin:12345678@192.168.1.226:554//h265Preview_01_main'
         # self.camera = cv2.VideoCapture(self.rtmp_str)
         self.set_up_camera()
@@ -57,7 +57,7 @@ class Camera:
                 pass
 
     def record(self, test=False):  # record for ten minutes
-        day_frames = 30 * 60 * 60 * 24  # every day has these frames
+        day_frames = 30 * 60 * 60 * 7  # every day has these frames from 9:00 - 16:00
         minute_frames = 30 * 60
         if not self.camera_opened:
             self.set_up_camera()
@@ -91,8 +91,12 @@ class Camera:
 
         start = datetime.datetime.strptime(start_time, '%H_%M_%S')
         end = datetime.datetime.strptime(end_time, '%H_%M_%S')
-        start_frame = (start.hour * 60 * 60 + start.minute * 60 + start.second) * 30
-        end_frame = (end.hour * 60 * 60 + end.minute * 60 + end.second) * 30
+        if start.hour < 9:
+            raise Exception("Video starts at 9 o'clock")
+        if start.hour > 16:
+            raise Exception("Video starts at 16 o'clock")
+        start_frame = ((start.hour-9) * 60 * 60 + start.minute * 60 + start.second) * 30
+        end_frame = ((end.hour-9) * 60 * 60 + end.minute * 60 + end.second) * 30
 
         if end_frame < start_frame:
             raise Exception("End time should not later than start time")
