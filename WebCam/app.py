@@ -29,6 +29,9 @@ try:
 except OSError as error:
     pass
 
+@app.route('/')
+def welcome_page():
+    return "Welcome to TECO lab system!"
 
 @app.route('/change_resolution', methods=['POST', 'GET'])
 def change_resolution():

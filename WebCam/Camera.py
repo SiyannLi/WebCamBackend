@@ -1,16 +1,16 @@
 import datetime
 import os
 import time
+
 import cv2
 
 
 class Camera:
 
     def __init__(self):
-        self.camera_opened = None
+        self.camera = None
         self.camera_number = 1
-        self.str = "rtsp://admin:12345678@10.12.180.110:554//h265Preview_01_main"
-        # self.rtmp_str = 'rtsp://admin:12345678@192.168.1.226:554//h265Preview_01_main'
+        self.str = "rtsp://admin:12345678@10.12.180.110:554//h264Preview_01_sub"
         # self.camera = cv2.VideoCapture(self.rtmp_str)
         self.set_up_camera()
         self.is_recording = False
@@ -20,7 +20,9 @@ class Camera:
         self.stream_frame = None  # in function gen_frames()
 
     def set_up_camera(self):
-        self.camera = cv2.VideoCapture(self.str)
+        self.camera = cv2.VideoCapture(self.str, cv2.CAP_FFMPEG)
+        self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+        self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
     def gen_frames640(self):  # generate frame by frame from camera
         self.set_up_camera()
@@ -29,8 +31,10 @@ class Camera:
             if self.camera_opened:
                 try:
                     self.frame = cv2.resize(self.frame, (640, 480))
-                    self.frame = cv2.flip(self.frame, 180)
-                    ret, buffer = cv2.imencode('.jpg', cv2.flip(self.frame, 1))
+                    # self.frame = cv2.flip(self.frame, 180)
+                    # ret, buffer = cv2.imencode('.jpg', cv2.flip(self.frame, 1))
+                    ret, buffer = cv2.imencode('.jpg', self.frame)
+
                     stream_frame = buffer.tobytes()
                     yield (b'--frame\r\n'
                            b'Content-Type: image/jpeg\r\n\r\n' + stream_frame + b'\r\n')
@@ -46,8 +50,10 @@ class Camera:
             if self.camera_opened:
                 try:
                     self.frame = cv2.resize(self.frame, (1920, 1080))
-                    self.frame = cv2.flip(self.frame, 180)
-                    ret, buffer = cv2.imencode('.jpg', cv2.flip(self.frame, 1))
+                    # self.frame = cv2.flip(self.frame, 180)
+                    # ret, buffer = cv2.imencode('.jpg', cv2.flip(self.frame, 1))
+                    ret, buffer = cv2.imencode('.jpg', self.frame)
+
                     stream_frame = buffer.tobytes()
                     yield (b'--frame\r\n'
                            b'Content-Type: image/jpeg\r\n\r\n' + stream_frame + b'\r\n')
@@ -95,8 +101,8 @@ class Camera:
             raise Exception("Video starts at 9 o'clock")
         if start.hour > 16:
             raise Exception("Video starts at 16 o'clock")
-        start_frame = ((start.hour-9) * 60 * 60 + start.minute * 60 + start.second) * 30
-        end_frame = ((end.hour-9) * 60 * 60 + end.minute * 60 + end.second) * 30
+        start_frame = ((start.hour - 9) * 60 * 60 + start.minute * 60 + start.second) * 30
+        end_frame = ((end.hour - 9) * 60 * 60 + end.minute * 60 + end.second) * 30
 
         if end_frame < start_frame:
             raise Exception("End time should not later than start time")
@@ -109,7 +115,7 @@ class Camera:
         while have_more_frame:
             have_more_frame, frame = reader.read()
             c += 1
-            if c >= start_frame and c <= end_frame:
+            if start_frame <= c <= end_frame:
                 cv2.waitKey(1)
                 writer.write(frame)
             if c > end_frame:
