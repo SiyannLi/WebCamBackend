@@ -18,6 +18,7 @@ class Camera:
         # common resources
         self.frame = None
         self.stream_frame = None  # in function gen_frames()
+        os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = 'rtsp_transport;udp'
 
     def set_up_camera(self):
         self.camera = cv2.VideoCapture(self.str, cv2.CAP_FFMPEG)
