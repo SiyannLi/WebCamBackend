@@ -11,6 +11,7 @@ class Camera:
         self.camera = None
         self.camera_number = 1
         self.str = "rtsp://admin:12345678@10.12.180.110:554//h264Preview_01_sub"
+
         # self.camera = cv2.VideoCapture(self.rtmp_str)
         self.set_up_camera()
         self.is_recording = False
@@ -22,8 +23,6 @@ class Camera:
 
     def set_up_camera(self):
         self.camera = cv2.VideoCapture(self.str, cv2.CAP_FFMPEG)
-        self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-        self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
     def gen_frames640(self):  # generate frame by frame from camera
         self.set_up_camera()
@@ -31,7 +30,7 @@ class Camera:
             self.camera_opened, self.frame = self.camera.read()
             if self.camera_opened:
                 try:
-                    self.frame = cv2.resize(self.frame, (640, 480))
+                    self.frame = cv2.resize(self.frame, (640, 360))
                     # self.frame = cv2.flip(self.frame, 180)
                     # ret, buffer = cv2.imencode('.jpg', cv2.flip(self.frame, 1))
                     ret, buffer = cv2.imencode('.jpg', self.frame)
@@ -64,7 +63,7 @@ class Camera:
                 pass
 
     def record(self, test=False):  # record for ten minutes
-        day_frames = 30 * 60 * 60 * 7  # every day has these frames from 9:00 - 16:00
+        day_frames = 10 * 60 * 60 * 7  # every day has these frames from 9:00 - 16:00
         minute_frames = 30 * 60
         if not self.camera_opened:
             self.set_up_camera()
@@ -72,7 +71,7 @@ class Camera:
         now = time.strftime("%Y_%m_%d", time.localtime())
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
         p = os.path.sep.join(['../videos', "{}.avi".format(str(now))])
-        out = cv2.VideoWriter(p, fourcc, 30, (640, 480))
+        out = cv2.VideoWriter(p, fourcc, 10, (640, 360))
         counter = 0
         if test:
             day_frames = 150
@@ -102,14 +101,14 @@ class Camera:
             raise Exception("Video starts at 9 o'clock")
         if start.hour > 16:
             raise Exception("Video starts at 16 o'clock")
-        start_frame = ((start.hour - 9) * 60 * 60 + start.minute * 60 + start.second) * 30
-        end_frame = ((end.hour - 9) * 60 * 60 + end.minute * 60 + end.second) * 30
+        start_frame = ((start.hour - 9) * 60 * 60 + start.minute * 60 + start.second) * 10
+        end_frame = ((end.hour - 9) * 60 * 60 + end.minute * 60 + end.second) * 10
 
         if end_frame < start_frame:
             raise Exception("End time should not later than start time")
         reader = cv2.VideoCapture(input_file)
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        writer = cv2.VideoWriter(output_file, fourcc, 30, (640, 480))
+        writer = cv2.VideoWriter(output_file, fourcc, 10, (640, 360))
 
         have_more_frame = True
         c = -1
