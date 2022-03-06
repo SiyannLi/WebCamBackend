@@ -11,7 +11,7 @@ class Camera:
         self.camera = None
         self.camera_number = 1
         self.str = "rtsp://admin:12345678@10.12.180.110:554//h264Preview_01_sub"
-
+        self.rtmp = "rtmp://10.12.180.110/bcs/channel0_sub.bcs?channel=0&stream=1&user=admin&password=12345678"
         # self.camera = cv2.VideoCapture(self.rtmp_str)
         self.set_up_camera()
         self.is_recording = False
@@ -19,10 +19,11 @@ class Camera:
         # common resources
         self.frame = None
         self.stream_frame = None  # in function gen_frames()
-        os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = 'rtsp_transport;udp'
+        #os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = 'rtsp_transport;udp'
 
     def set_up_camera(self):
-        self.camera = cv2.VideoCapture(self.str, cv2.CAP_FFMPEG)
+        #self.camera = cv2.VideoCapture(self.rtmp, cv2.CAP_FFMPEG)
+        self.camera = cv2.VideoCapture(self.rtmp)
 
     def gen_frames640(self):  # generate frame by frame from camera
         self.set_up_camera()
