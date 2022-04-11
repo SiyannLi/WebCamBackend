@@ -10,8 +10,8 @@ class Camera:
     def __init__(self):
         self.camera = None
         self.camera_number = 1
-        self.str = "rtsp://admin:12345678@10.12.180.110:554//h264Preview_01_sub"
-        self.rtmp = "rtmp://10.12.180.110/bcs/channel0_sub.bcs?channel=0&stream=1&user=admin&password=12345678"
+        self.str = "rtsp://admin:12345678@10.12.181.129:10554//h264Preview_01_sub"
+        self.rtmp = "rtmp://10.12.181.129/bcs/channel0_sub.bcs?channel=0&stream=1&user=admin&password=12345678"
         self.mp4 = "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mp4"
         # self.camera = cv2.VideoCapture(self.rtmp_str)
         self.set_up_camera()
@@ -24,7 +24,7 @@ class Camera:
 
     def set_up_camera(self):
         #self.camera = cv2.VideoCapture(self.rtmp, cv2.CAP_FFMPEG)
-        self.camera = cv2.VideoCapture(self.mp4)
+        self.camera = cv2.VideoCapture(self.str)
 
     def gen_frames640(self):  # generate frame by frame from camera
         self.set_up_camera()
